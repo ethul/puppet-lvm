@@ -24,4 +24,22 @@ describe provider_class do
             @provider.destroy
         end
     end
+
+    # Bug: Spec for the issue where pvs was returning a string, but
+    # the code was expecting an array since it called an enumerable
+    # method (inject). The fix was to split on newlines in the output
+    # of pvs before calling inject.
+    describe "when accessing the physical_volumes property" do
+        it "should split the line returned from pvs on each newline" do
+          # pvs --version
+          # LVM version:     2.02.66(2) (2010-05-20)
+          # Library version: 1.02.48 (2010-05-20)
+          # Driver version:  4.20.0
+          pv = "/dev/sdb"
+          vg = "vg-test2"
+          @resource.expects(:[]).with(:name).returns(vg).at_least_once
+          @provider.expects(:pvs).returns("  PV,VG\n  /dev/sda,vg-test1\n  #{pv},#{vg}\n")
+          @provider.physical_volumes.should == [pv]
+        end
+    end
 end

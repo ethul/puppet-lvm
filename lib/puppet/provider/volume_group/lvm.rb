@@ -32,7 +32,7 @@ Puppet::Type.type(:volume_group).provide :lvm do
 
     def physical_volumes
         lines = pvs('-o', 'pv_name,vg_name', '--separator', ',')
-        lines.inject([]) do |memo, line|
+        lines.split("\n").inject([]) do |memo, line|
             pv, vg = line.split(',').map { |s| s.strip }
             if vg == @resource[:name]
                 memo << pv
